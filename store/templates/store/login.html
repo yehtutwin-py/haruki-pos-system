@@ -1,0 +1,64 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — HARUKI POS</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{% static 'css/haruki.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/login.css' %}" />
+  </head>
+  <body class="login-body">
+    <div class="login-card">
+      <div class="login-logo">HARUKI<span>.</span></div>
+      <div class="login-subtitle">POINT OF SALE SYSTEM</div>
+
+      {% for message in messages %}
+      <div class="login-error">
+        <i class="bi bi-exclamation-circle"></i>
+        {{ message }}
+      </div>
+      {% endfor %}
+
+      <form method="post">
+        {% csrf_token %}
+
+        <label class="login-label">USERNAME</label>
+        <input
+          type="text"
+          name="username"
+          class="haruki-input"
+          autofocus
+          autocomplete="username"
+          value="{{ request.POST.username }}"
+        />
+
+        <label class="login-label">PASSWORD</label>
+        <input
+          type="password"
+          name="password"
+          class="haruki-input"
+          autocomplete="current-password"
+        />
+
+        <button type="submit" class="login-btn">
+          SIGN IN &nbsp;<i class="bi bi-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="login-footer" style="margin-top: 8px">
+        春木 &nbsp;|&nbsp; Haruki POS v1.0
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

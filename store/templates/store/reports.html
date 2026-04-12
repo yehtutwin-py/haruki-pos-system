@@ -1,0 +1,184 @@
+{% extends 'store/base.html' %} {% load static %} {% block title %}Reports —
+HARUKI POS{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports.css' %}" />
+{% endblock %} {% block content %}
+<div class="reports-wrapper">
+  <div class="reports-header">
+    <div class="reports-title">レポート / REPORTS</div>
+    <a href="{% url 'store:pos' %}" class="btn-haruki-outline">
+      <i class="bi bi-arrow-left"></i> Back to POS
+    </a>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="report-nav">
+    <a href="{% url 'store:reports' %}" class="active">
+      <i class="bi bi-grid"></i> Dashboard
+    </a>
+    <a href="{% url 'store:daily_report' %}">
+      <i class="bi bi-calendar-day"></i> Daily Report
+    </a>
+    <a href="{% url 'store:order_history' %}">
+      <i class="bi bi-receipt"></i> Order History
+    </a>
+    <a href="{% url 'store:customer_list' %}">
+      <i class="bi bi-people"></i> Members
+    </a>
+  </div>
+
+  <!-- Stat cards -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">TODAY SALES / 本日売上</div>
+      <div class="stat-value red">¥{{ today_total|floatformat:0 }}</div>
+      <div class="stat-sub">{{ today_count }} orders today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">THIS MONTH / 今月売上</div>
+      <div class="stat-value">¥{{ month_total|floatformat:0 }}</div>
+      <div class="stat-sub">{{ month_count }} orders this month</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">AVG ORDER / 平均客単価</div>
+        <div class="stat-value">¥{{ today_avg }}</div>
+        <div class="stat-sub">per transaction today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">DATE / 日付</div>
+      <div class="stat-value" style="font-size: 16px; padding-top: 4px">
+        {{ today }}
+      </div>
+      <div class="stat-sub">
+        <a
+          href="{% url 'store:daily_report' %}?date={{ today }}"
+          style="
+            color: var(--haruki-red);
+            text-decoration: none;
+            font-size: 11px;
+          "
+        >
+          View full daily report →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts row -->
+  <div class="charts-row">
+    <!-- Last 7 days bar chart -->
+    <div class="chart-card">
+      <div class="chart-title">LAST 7 DAYS / 直近7日間</div>
+      <div class="bar-chart" id="barChart"></div>
+    </div>
+
+    <!-- Top products -->
+    <div class="chart-card">
+      <div class="chart-title">TOP PRODUCTS THIS MONTH / 今月売れ筋</div>
+      {% if top_products %} {% for p in top_products %}
+      <div class="top-product-row">
+        <div class="top-product-rank">{{ forloop.counter }}</div>
+        <div class="top-product-name">{{ p.product_name }}</div>
+        <div class="top-product-qty">{{ p.qty }} sold</div>
+        <div class="top-product-bar-wrap">
+          <div
+            class="top-product-bar"
+            data-qty="{{ p.qty }}"
+            data-max="{{ top_products.0.qty }}"
+          ></div>
+        </div>
+      </div>
+      {% endfor %} {% else %}
+      <div style="color: var(--haruki-muted); font-size: 13px; padding: 20px 0">
+        No sales data yet this month.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Recent orders -->
+  <div class="haruki-card">
+    <div class="chart-title" style="margin-bottom: 16px">
+      RECENT ORDERS / 最近の注文
+    </div>
+    <table class="haruki-table">
+      <thead>
+        <tr>
+          <th>Receipt No.</th>
+          <th>Time</th>
+          <th>Cashier</th>
+          <th>Member</th>
+          <th>Payment</th>
+          <th style="text-align: right">Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in recent_orders %}
+        <tr>
+          <td style="font-weight: 500; font-family: monospace">
+            {{ order.receipt_number }}
+          </td>
+          <td>{{ order.paid_at|date:"H:i" }}</td>
+          <td>
+            {{ order.cashier.get_full_name|default:order.cashier.username }}
+          </td>
+          <td>
+            {% if order.customer %}
+            <span style="color: #27ae60; font-size: 12px">
+              <i class="bi bi-patch-check-fill"></i>
+              {{ order.customer.name }}
+            </span>
+            {% else %}
+            <span style="color: var(--haruki-muted); font-size: 12px">
+              Walk-in
+            </span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="haruki-badge badge-paid">
+              {{ order.get_payment_method_display }}
+            </span>
+          </td>
+          <td style="text-align: right; font-weight: 500">
+            ¥{{ order.total }}
+          </td>
+          <td>
+            <a
+              href="{% url 'store:receipt' order.receipt_number %}"
+              style="
+                color: var(--haruki-red);
+                font-size: 12px;
+                text-decoration: none;
+              "
+            >
+              View →
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td
+            colspan="7"
+            style="
+              text-align: center;
+              color: var(--haruki-muted);
+              padding: 24px;
+            "
+          >
+            No orders yet.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<div
+  id="chartData"
+  data-labels="{% for day in last_7 %}{{ day.date }}{% if not forloop.last %},{% endif %}{% endfor %}"
+  data-totals="{% for day in last_7 %}{{ day.total }}{% if not forloop.last %},{% endif %}{% endfor %}"
+  style="display: none"
+></div>
+<script src="{% static 'js/reports.js' %}"></script>
+{% endblock %}

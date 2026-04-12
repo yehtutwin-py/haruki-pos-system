@@ -1,0 +1,223 @@
+{% extends 'store/base.html' %} {% load static %} {% block title %}Daily Report
+— HARUKI POS{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports.css' %}" />
+{% endblock %} {% block content %}
+<div class="reports-wrapper">
+  <div class="reports-header">
+    <div class="reports-title">日報 / DAILY REPORT</div>
+    <a href="{% url 'store:pos' %}" class="btn-haruki-outline">
+      <i class="bi bi-arrow-left"></i> Back to POS
+    </a>
+  </div>
+
+  <!-- Nav tabs -->
+  <div class="report-nav">
+    <a href="{% url 'store:reports' %}">
+      <i class="bi bi-grid"></i> Dashboard
+    </a>
+    <a href="{% url 'store:daily_report' %}" class="active">
+      <i class="bi bi-calendar-day"></i> Daily Report
+    </a>
+    <a href="{% url 'store:order_history' %}">
+      <i class="bi bi-receipt"></i> Order History
+    </a>
+    <a href="{% url 'store:customer_list' %}">
+      <i class="bi bi-people"></i> Members
+    </a>
+  </div>
+
+  <!-- Date picker -->
+  <div class="filter-bar" style="margin-bottom: 24px">
+    <form method="get" style="display: flex; gap: 10px; align-items: center">
+      <label style="font-size: 12px; color: var(--haruki-muted)"
+        >Date / 日付</label
+      >
+      <input type="date" name="date" value="{{ report_date }}" />
+      <button
+        type="submit"
+        class="btn-haruki"
+        style="padding: 8px 16px; font-size: 12px"
+      >
+        View Report
+      </button>
+    </form>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="stat-grid" style="margin-bottom: 24px">
+    <div class="stat-card">
+      <div class="stat-label">TOTAL SALES / 売上合計</div>
+      <div class="stat-value red">¥{{ totals.total|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">ORDERS / 注文数</div>
+      <div class="stat-value">{{ totals.count|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">SUBTOTAL / 小計</div>
+      <div class="stat-value" style="font-size: 18px">
+        ¥{{ totals.subtotal|default:0 }}
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">TAX COLLECTED / 消費税</div>
+      <div class="stat-value" style="font-size: 18px">
+        ¥{{ totals.tax|default:0 }}
+      </div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <!-- Payment breakdown -->
+    <div class="haruki-card">
+      <div class="chart-title" style="margin-bottom: 16px">
+        PAYMENT BREAKDOWN / 支払方法別
+      </div>
+      <table class="haruki-table">
+        <thead>
+          <tr>
+            <th>Method</th>
+            <th style="text-align: center">Orders</th>
+            <th style="text-align: right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in payment_breakdown %}
+          <tr>
+            <td>{{ p.payment_method|upper }}</td>
+            <td style="text-align: center">{{ p.count }}</td>
+            <td style="text-align: right; font-weight: 500">¥{{ p.total }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td
+              colspan="3"
+              style="
+                color: var(--haruki-muted);
+                text-align: center;
+                padding: 20px;
+              "
+            >
+              No data
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Items sold -->
+    <div class="haruki-card">
+      <div class="chart-title" style="margin-bottom: 16px">
+        ITEMS SOLD / 販売商品
+      </div>
+      <table class="haruki-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>商品名</th>
+            <th style="text-align: center">Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in items_sold %}
+          <tr>
+            <td style="font-weight: 500">{{ item.product_name }}</td>
+            <td style="color: var(--haruki-muted)">
+              {{ item.product_name_ja }}
+            </td>
+            <td style="text-align: center">{{ item.qty }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td
+              colspan="3"
+              style="
+                color: var(--haruki-muted);
+                text-align: center;
+                padding: 20px;
+              "
+            >
+              No sales on this date
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- All orders today -->
+  <div class="haruki-card">
+    <div class="chart-title" style="margin-bottom: 16px">
+      ALL ORDERS / 全注文
+    </div>
+    <table class="haruki-table">
+      <thead>
+        <tr>
+          <th>Receipt</th>
+          <th>Time</th>
+          <th>Cashier</th>
+          <th>Member</th>
+          <th>Payment</th>
+          <th style="text-align: right">Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td style="font-weight: 500; font-family: monospace">
+            {{ order.receipt_number }}
+          </td>
+          <td>{{ order.paid_at|date:"H:i" }}</td>
+          <td>
+            {{ order.cashier.get_full_name|default:order.cashier.username }}
+          </td>
+          <td>
+            {% if order.customer %}
+            <span style="color: #27ae60; font-size: 12px">
+              {{ order.customer.name }}
+            </span>
+            {% else %}
+            <span style="color: var(--haruki-muted); font-size: 12px">
+              Walk-in
+            </span>
+            {% endif %}
+          </td>
+          <td>{{ order.get_payment_method_display }}</td>
+          <td style="text-align: right; font-weight: 500">
+            ¥{{ order.total }}
+          </td>
+          <td>
+            <a
+              href="{% url 'store:receipt' order.receipt_number %}"
+              style="
+                color: var(--haruki-red);
+                font-size: 12px;
+                text-decoration: none;
+              "
+            >
+              View →
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td
+            colspan="7"
+            style="
+              text-align: center;
+              color: var(--haruki-muted);
+              padding: 24px;
+            "
+          >
+            No orders on {{ report_date }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

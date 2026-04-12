@@ -1,0 +1,142 @@
+{% extends 'store/base.html' %} {% load static %} {% block title %}Order History
+— HARUKI POS{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/reports.css' %}" />
+{% endblock %} {% block content %}
+<div class="reports-wrapper">
+  <div class="reports-header">
+    <div class="reports-title">注文履歴 / ORDER HISTORY</div>
+    <a href="{% url 'store:pos' %}" class="btn-haruki-outline">
+      <i class="bi bi-arrow-left"></i> Back to POS
+    </a>
+  </div>
+
+  <div class="report-nav">
+    <a href="{% url 'store:reports' %}">
+      <i class="bi bi-grid"></i> Dashboard
+    </a>
+    <a href="{% url 'store:daily_report' %}">
+      <i class="bi bi-calendar-day"></i> Daily Report
+    </a>
+    <a href="{% url 'store:order_history' %}" class="active">
+      <i class="bi bi-receipt"></i> Order History
+    </a>
+    <a href="{% url 'store:customer_list' %}">
+      <i class="bi bi-people"></i> Members
+    </a>
+  </div>
+
+  <form method="get">
+    <div class="filter-bar">
+      <label style="font-size: 12px; color: var(--haruki-muted)">From</label>
+      <input type="date" name="from" value="{{ date_from }}" />
+      <label style="font-size: 12px; color: var(--haruki-muted)">To</label>
+      <input type="date" name="to" value="{{ date_to }}" />
+      <select name="status">
+        <option value="">All Status</option>
+        <option value="paid">
+          {% if status == 'paid' %}&#10003; {% endif %}Paid
+        </option>
+        <option value="refunded">
+          {% if status == 'refunded' %}&#10003; {% endif %}Refunded
+        </option>
+        <option value="cancelled">
+          {% if status == 'cancelled' %}&#10003; {% endif %}Cancelled
+        </option>
+      </select>
+      <button
+        type="submit"
+        class="btn-haruki"
+        style="padding: 8px 16px; font-size: 12px"
+      >
+        Filter
+      </button>
+      <a
+        href="{% url 'store:order_history' %}"
+        class="btn-haruki-outline"
+        style="padding: 8px 14px; font-size: 12px"
+      >
+        Clear
+      </a>
+    </div>
+  </form>
+
+  <div class="haruki-card">
+    <table class="haruki-table">
+      <thead>
+        <tr>
+          <th>Receipt No.</th>
+          <th>Date</th>
+          <th>Time</th>
+          <th>Cashier</th>
+          <th>Member</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th style="text-align: right">Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td style="font-weight: 500; font-family: monospace; font-size: 12px">
+            {{ order.receipt_number }}
+          </td>
+          <td>{{ order.created_at|date:"Y-m-d" }}</td>
+          <td>{{ order.created_at|date:"H:i" }}</td>
+          <td>
+            {{ order.cashier.get_full_name|default:order.cashier.username }}
+          </td>
+          <td>
+            {% if order.customer %}
+            <span style="color: #27ae60; font-size: 12px">
+              <i class="bi bi-patch-check-fill"></i> {{ order.customer.name }}
+            </span>
+            {% else %}
+            <span style="color: var(--haruki-muted); font-size: 12px"
+              >Walk-in</span
+            >
+            {% endif %}
+          </td>
+          <td style="font-size: 12px">
+            {{ order.get_payment_method_display }}
+          </td>
+          <td>
+            <span class="haruki-badge badge-{{ order.status }}">
+              {{ order.get_status_display }}
+            </span>
+          </td>
+          <td style="text-align: right; font-weight: 500">
+            ¥{{ order.total }}
+          </td>
+          <td>
+            <a
+              href="{% url 'store:receipt' order.receipt_number %}"
+              style="
+                color: var(--haruki-red);
+                font-size: 12px;
+                text-decoration: none;
+              "
+            >
+              View →
+            </a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td
+            colspan="9"
+            style="
+              text-align: center;
+              color: var(--haruki-muted);
+              padding: 32px;
+            "
+          >
+            No orders found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

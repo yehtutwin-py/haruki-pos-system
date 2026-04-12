@@ -1,0 +1,113 @@
+{% extends 'store/base.html' %} {% load static %} {% block title %}Receipt {{
+order.receipt_number }} — HARUKI{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/receipt.css' %}" />
+{% endblock %} {% block content %}
+<div class="receipt-wrapper">
+  <div class="receipt-card" id="receiptCard">
+    <!-- Header -->
+    <div class="receipt-logo">HARUKI<span>.</span></div>
+    <div class="receipt-subtitle">春木 POINT OF SALE</div>
+
+    <hr class="receipt-divider" />
+
+    <!-- Order meta -->
+    <div class="receipt-meta">
+      <span>Receipt No.</span>
+      <span style="font-weight: 500; color: var(--haruki-black)">
+        {{ order.receipt_number }}
+      </span>
+    </div>
+    <div class="receipt-meta">
+      <span>Date / 日付</span>
+      <span>{{ order.paid_at|date:"Y-m-d H:i" }}</span>
+    </div>
+    <div class="receipt-meta">
+      <span>Cashier / 担当</span>
+      <span
+        >{{ order.cashier.get_full_name|default:order.cashier.username }}</span
+      >
+    </div>
+    <div class="receipt-meta">
+      <span>Payment / 支払</span>
+      <span>{{ order.get_payment_method_display }}</span>
+    </div>
+
+    <hr class="receipt-divider-dashed" />
+
+    <!-- Items -->
+    <table class="receipt-table">
+      <thead>
+        <tr>
+          <th>Item / 商品</th>
+          <th style="text-align: center">Qty</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            {{ item.product_name }}<br />
+            <span style="color: var(--haruki-muted); font-size: 10px">
+              {{ item.product_name_ja }}
+            </span>
+          </td>
+          <td style="text-align: center">{{ item.quantity }}</td>
+          <td style="text-align: right; font-weight: 500">
+            ¥{{ item.get_line_total }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <hr class="receipt-divider-dashed" />
+
+    <!-- Totals -->
+    <div class="receipt-totals">
+      <div class="receipt-total-row">
+        <span>Subtotal (excl. tax)</span>
+        <span>¥{{ order.subtotal }}</span>
+      </div>
+      <div class="receipt-total-row">
+        <span>Consumption Tax 消費税</span>
+        <span>¥{{ order.tax_total }}</span>
+      </div>
+      <div class="receipt-total-row grand">
+        <span>合計 / Total</span>
+        <span>¥{{ order.total }}</span>
+      </div>
+    </div>
+
+    {% if order.payment_method == 'cash' %}
+    <div class="receipt-change">
+      <span>お釣り / Change</span>
+      <span>¥{{ order.change_given }}</span>
+    </div>
+    {% endif %}
+
+    <hr class="receipt-divider" />
+
+    <!-- Footer -->
+    <div class="receipt-footer-text">
+      ありがとうございます<br />
+      Thank you for your purchase<br />
+      またお越しください
+    </div>
+
+    <!-- Actions -->
+    <div class="receipt-actions">
+      <button
+        onclick="window.print()"
+        class="btn-haruki-outline"
+        style="border: 0.5px solid var(--haruki-border)"
+      >
+        <i class="bi bi-printer"></i> Print
+      </button>
+      <a href="{% url 'store:pos' %}" class="btn-haruki">
+        <i class="bi bi-plus-lg"></i> New Order
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends 'store/base.html' %} {% load static %} {% block title %}Cashier —
+HARUKI POS{% endblock %} {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pos.css' %}" />
+<link rel="stylesheet" href="{% static 'css/customer.css' %}" />
+{% endblock %} {% block content %}
+<div style="position: relative">
+  <!-- Member modal overlay -->
+  <div class="modal-overlay" id="memberModal">
+    <div class="modal-box">
+      <div class="modal-title">
+        <i class="bi bi-person-plus"></i>
+        New Member Registration
+      </div>
+
+      <label class="modal-label">FULL NAME *</label>
+      <input
+        type="text"
+        id="regName"
+        class="haruki-input"
+        placeholder="Yuki Tanaka"
+      />
+
+      <label class="modal-label">PHONE NUMBER *</label>
+      <input
+        type="text"
+        id="regPhone"
+        class="haruki-input"
+        placeholder="09012345678"
+      />
+
+      <label class="modal-label">EMAIL (optional)</label>
+      <input
+        type="email"
+        id="regEmail"
+        class="haruki-input"
+        placeholder="yuki@example.com"
+      />
+
+      <div class="modal-error" id="modalError"></div>
+
+      <div class="modal-actions">
+        <button
+          onclick="closeModal()"
+          style="
+            background: none;
+            border: 0.5px solid var(--haruki-border);
+            color: var(--haruki-muted);
+          "
+        >
+          Cancel
+        </button>
+        <button
+          onclick="registerCustomer()"
+          style="background: var(--haruki-black); color: #fff; border: none"
+        >
+          Register &amp; Attach
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pos-wrapper">
+    <!-- LEFT: Products -->
+    <div class="product-panel">
+      <!-- Customer bar -->
+      <div class="customer-bar">
+        <i
+          class="bi bi-person-circle"
+          style="font-size: 18px; color: var(--haruki-muted)"
+        ></i>
+
+        <!-- Search area -->
+        <div class="customer-search-wrap" id="customerSearchArea">
+          <input
+            type="text"
+            id="phoneInput"
+            class="haruki-input"
+            placeholder="Phone number / 電話番号"
+            style="width: 200px"
+          />
+          <button
+            class="btn-haruki"
+            style="padding: 8px 14px; font-size: 12px"
+            onclick="searchCustomer()"
+          >
+            <i class="bi bi-search"></i> Find Member
+          </button>
+          <button
+            class="btn-haruki-outline"
+            style="padding: 8px 12px; font-size: 12px"
+            onclick="openRegisterModal('')"
+          >
+            <i class="bi bi-person-plus"></i> New Member
+          </button>
+        </div>
+
+        <!-- Found customer area -->
+        <div
+          class="customer-found"
+          id="customerFoundArea"
+          style="display: none"
+        >
+          <i
+            class="bi bi-patch-check-fill"
+            style="color: #27ae60; font-size: 18px"
+          ></i>
+          <div>
+            <div class="customer-found-name" id="customerName"></div>
+            <div class="customer-found-points">
+              <i class="bi bi-star-fill" style="font-size: 10px"></i>
+              <span id="customerPoints"></span>
+            </div>
+          </div>
+          <button class="customer-remove-btn" onclick="removeCustomer()">
+            <i class="bi bi-x-circle"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Category tabs -->
+      <div class="category-bar">
+        <button class="cat-btn active" onclick="filterCategory('all', this)">
+          すべて / All
+        </button>
+        {% for cat in categories %}
+        <button class="cat-btn" onclick="filterCategory('{{ cat.id }}', this)">
+          {{ cat.name_ja }} / {{ cat.name }}
+        </button>
+        {% endfor %}
+      </div>
+
+      <!-- Search -->
+      <div class="search-bar">
+        <input
+          type="text"
+          class="haruki-input"
+          id="searchInput"
+          placeholder="Search products... / 商品を検索"
+          oninput="filterProducts()"
+        />
+      </div>
+
+      <!-- Product grid -->
+      <div class="product-grid" id="productGrid">
+        {% for product in products %}
+        <div
+          class="prod-card {% if product.stock == 0 %}out-of-stock{% endif %}"
+          data-id="{{ product.id }}"
+          data-name="{{ product.name }}"
+          data-name-ja="{{ product.name_ja }}"
+          data-price="{{ product.price }}"
+          data-category="{{ product.category.id }}"
+          data-fallback="{{ no_image_url }}"
+          onclick="addToCart(this)"
+        >
+          <img
+            src="{% if product.image %}{{ product.image.url }}{% else %}{{ no_image_url }}{% endif %}"
+            alt="{{ product.name }}"
+            class="prod-img"
+            data-fallback="{{ no_image_url }}"
+          />
+
+          <div class="prod-name">{{ product.name }}</div>
+          <div class="prod-ja">{{ product.name_ja }}</div>
+          <div class="prod-price">¥{{ product.price }}</div>
+          <div class="prod-stock">
+            {% if product.stock == 0 %}Out of stock {% else %}Stock: {{
+            product.stock }}{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- RIGHT: Cart -->
+    <div class="cart-panel">
+      <div class="cart-header">
+        <span class="cart-title">注文 / ORDER</span>
+        <span class="cart-badge" id="cartCount">0 items</span>
+      </div>
+
+      <div class="cart-items" id="cartItems">
+        <div class="cart-empty">
+          <i class="bi bi-bag"></i>
+          <span>カートは空です</span>
+          <span style="font-size: 11px">Tap a product to add</span>
+        </div>
+      </div>
+
+      <div id="cartSummaryBlock" style="display: none">
+        <div class="cart-summary">
+          <div class="summary-row">
+            <span>Subtotal (excl. tax)</span>
+            <span id="sumSubtotal">¥0</span>
+          </div>
+          <div class="summary-row">
+            <span>Consumption Tax</span>
+            <span id="sumTax">¥0</span>
+          </div>
+          <div class="summary-row total-row">
+            <span>合計 / Total</span>
+            <span id="sumTotal">¥0</span>
+          </div>
+        </div>
+        <button class="checkout-btn" onclick="proceedCheckout()">
+          会計する / CHECKOUT
+        </button>
+        <button class="clear-btn" onclick="clearCart()">
+          <i class="bi bi-trash3"></i> Clear order
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %} {% block extra_js %}
+<script src="{% static 'js/pos.js' %}"></script>
+<script src="{% static 'js/customer.js' %}"></script>
+{% endblock %}

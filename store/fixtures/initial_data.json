@@ -1,0 +1,12 @@
+[
+  {"model": "store.category", "pk": 1, "fields": {"name": "Food", "name_ja": "\u98df\u54c1", "order": 1}},
+  {"model": "store.category", "pk": 2, "fields": {"name": "Drinks", "name_ja": "\u98f2\u6599", "order": 2}},
+  {"model": "store.category", "pk": 3, "fields": {"name": "Snacks", "name_ja": "\u83d3\u5b50", "order": 3}},
+  {"model": "store.category", "pk": 4, "fields": {"name": "Other", "name_ja": "\u305d\u306e\u4ed6", "order": 4}},
+  {"model": "store.product", "pk": 1, "fields": {"category": 1, "name": "Onigiri", "name_ja": "\u304a\u306b\u304e\u308a", "price": 180, "tax_type": "reduced", "stock": 50, "is_active": true, "barcode": null, "image": "", "created_at": "2026-04-09T00:00:00Z"}},
+  {"model": "store.product", "pk": 2, "fields": {"category": 1, "name": "Bento Box", "name_ja": "\u5f01\u5f53", "price": 650, "tax_type": "reduced", "stock": 20, "is_active": true, "barcode": null, "image": "", "created_at": "2026-04-09T00:00:00Z"}},
+  {"model": "store.product", "pk": 3, "fields": {"category": 2, "name": "Green Tea", "name_ja": "\u7dd1\u8336", "price": 150, "tax_type": "reduced", "stock": 100, "is_active": true, "barcode": null, "image": "", "created_at": "2026-04-09T00:00:00Z"}},
+  {"model": "store.product", "pk": 4, "fields": {"category": 2, "name": "Canned Coffee", "name_ja": "\u7f36\u30b3\u30fc\u30d2\u30fc", "price": 130, "tax_type": "reduced", "stock": 80, "is_active": true, "barcode": null, "image": "", "created_at": "2026-04-09T00:00:00Z"}},
+  {"model": "store.product", "pk": 5, "fields": {"category": 3, "name": "Pocky", "name_ja": "\u30dd\u30c3\u30ad\u30fc", "price": 200, "tax_type": "standard", "stock": 60, "is_active": true, "barcode": null, "image": "", "created_at": "2026-04-09T00:00:00Z"}},
+  {"model": "store.product", "pk": 6, "fields": {"category": 4, "name": "Bag", "name_ja": "\u888b", "price": 3, "tax_type": "standard", "stock": 500, "is_active": true, "barcode": null, "image": "", "created_at": "2026-04-09T00:00:00Z"}}
+]

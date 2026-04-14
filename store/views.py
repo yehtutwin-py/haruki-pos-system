@@ -13,6 +13,7 @@ from .models import Product, Category, Order, OrderItem, Customer
 from django.db.models import Sum, Count, Avg
 from django.db.models.functions import TruncDate, TruncMonth
 from datetime import date, timedelta
+from django.templatetags.static import static
 
 # Create your views here.
 # Login view
@@ -45,6 +46,7 @@ def pos_view(request):
     return render(request, 'store/pos.html', {
         'categories': categories,
         'products': products,
+        'no_image_url': static('store/images/no_image.jpg'),
     })
     
 # Checkout view

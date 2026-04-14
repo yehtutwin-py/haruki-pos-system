@@ -1,1 +1,1 @@
-web: python manage.py collectstatic --noinput && python manage.py migrate && python manage.py createadmin && gunicorn pos_project.wsgi --log-file -
+web: python manage.py collectstatic --noinput && python manage.py migrate && python manage.py shell -c "from django.contrib.auth.models import User; User.objects.filter(username='admin').exists() or User.objects.create_superuser('admin','admin@haruki.com','Admin@1234')" && gunicorn pos_project.wsgi --log-file -

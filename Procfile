@@ -1,0 +1,1 @@
+web: python manage.py collectstatic --noinput && python manage.py migrate && python manage.py createadmin && gunicorn pos_project.wsgi --log-file -

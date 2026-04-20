@@ -163,9 +163,9 @@ HARUKI POS{% endblock %} {% block extra_css %}
           <div class="prod-name">{{ product.name }}</div>
           <div class="prod-ja">{{ product.name_ja }}</div>
           <div class="prod-price">¥{{ product.price }}</div>
-          <div class="prod-stock">
-            {% if product.stock == 0 %}Out of stock {% else %}Stock: {{
-            product.stock }}{% endif %}
+          <div class="prod-stock" id="stock-{{ product.id }}">
+            {% if product.stock == 0 %}Out of stock
+            {% else %}Stock: {{ product.stock }}{% endif %}
           </div>
         </div>
         {% endfor %}

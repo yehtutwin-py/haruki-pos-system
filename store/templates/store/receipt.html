@@ -124,7 +124,7 @@ order.receipt_number }} — HARUKI{% endblock %} {% block extra_css %}
       >
         <i class="bi bi-printer"></i> Print
       </button>
-      <a href="{% url 'store:pos' %}" class="btn-haruki">
+      <a href="{% url 'store:pos' %}" class="btn-haruki" onclick="sessionStorage.clear();">
         <i class="bi bi-plus-lg"></i> New Order
       </a>
     </div>

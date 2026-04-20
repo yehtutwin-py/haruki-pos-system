@@ -64,8 +64,31 @@ function addToCart(card) {
     cart[id] = { name, nameJa, price, image, qty: 1 };
   }
 
+  updateStockDisplay(id, card);
   renderCart();
   saveCartToSession();
+}
+
+// ── Update stock display on card ──
+function updateStockDisplay(id, card) {
+  const originalStock = parseInt(card.dataset.stock) || 0;
+  const inCart        = cart[id] ? cart[id].qty : 0;
+  const remaining     = originalStock - inCart;
+  const stockEl       = document.getElementById('stock-' + id);
+
+  if (!stockEl) return;
+
+  if (remaining <= 0) {
+    stockEl.textContent = 'Out of stock';
+    card.classList.add('out-of-stock');
+    card.style.pointerEvents = 'none';
+    card.style.opacity = '0.45';
+  } else {
+    stockEl.textContent = 'Stock: ' + remaining;
+    card.classList.remove('out-of-stock');
+    card.style.pointerEvents = '';
+    card.style.opacity = '';
+  }
 }
 
 // ── Change quantity ──
@@ -73,6 +96,11 @@ function changeQty(id, delta) {
   if (!cart[id]) return;
   cart[id].qty += delta;
   if (cart[id].qty <= 0) delete cart[id];
+
+  // Update stock display on product card
+  const card = document.querySelector(`.prod-card[data-id="${id}"]`);
+  if (card) updateStockDisplay(id, card);
+
   renderCart();
   saveCartToSession();
 }
@@ -80,6 +108,24 @@ function changeQty(id, delta) {
 // ── Clear cart ──
 function clearCart() {
   cart = {};
+
+  // Reset all stock displays
+  document.querySelectorAll('.prod-card').forEach(card => {
+    const id            = card.dataset.id;
+    const originalStock = parseInt(card.dataset.stock) || 0;
+    const stockEl       = document.getElementById('stock-' + id);
+    if (stockEl) {
+      if (originalStock <= 0) {
+        stockEl.textContent = 'Out of stock';
+      } else {
+        stockEl.textContent = 'Stock: ' + originalStock;
+        card.classList.remove('out-of-stock');
+        card.style.pointerEvents = '';
+        card.style.opacity = '';
+      }
+    }
+  });
+
   renderCart();
   saveCartToSession();
 }
